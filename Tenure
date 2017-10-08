@@ -1,0 +1,44 @@
+import java.time._
+import java.time.temporal._
+import java.text.SimpleDateFormat
+import java.time.format.DateTimeFormatter
+
+val textFile = sc.textFile("file:/Users/kannanmoorthy/Downloads/kafka-0.11.0.0-src/bigdata/ctenure.dat")
+
+val splitRdd = textFile.map(line => (line.split("\\|")(0),line) )
+//splitRdd.foreach(println)
+
+val yourRdd = splitRdd.map(y => y._2)
+//yourRdd.foreach(println)
+val yourRdd_splitted = yourRdd.map(x => x.split("\\|",-1))
+//yourRdd_splitted.foreach(x => x.foreach(println))
+
+yourRdd_splitted.foreach(arr => 
+  { 
+  val acct_nbr_txt = arr(0)
+  val acct_nbr_type = arr(1)
+  val disconnect_date = arr(5)
+  if (disconnect_date == "")
+  {
+  val Order_date = arr(2)
+  val datesconverted = LocalDate.parse(Order_date, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+  val datesnow = LocalDate.now
+  val diffdays = ChronoUnit.DAYS.between(datesnow,datesconverted)
+  if (diffdays > 0) println(acct_nbr_txt +"|First Bill") else println(acct_nbr_txt+"|Pre-Install")
+  val activation_date = arr(3)
+  val second_bill_date = arr(4)
+  
+  }
+  else
+  {
+   val datesconverted = LocalDate.parse(disconnect_date, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+   val datesnow = LocalDate.now
+  val diffdays = ChronoUnit.DAYS.between(datesnow,datesconverted)
+  println("Disconnect Loop:" + diffdays)
+  if (diffdays <= 0) println(acct_nbr_txt +"|" + acct_nbr_type +"|Good Bye")
+  else if (diffdays > 0 && diffdays < 31 ) println(acct_nbr_txt +"|" + acct_nbr_type +"|First-Bill")
+  else println(acct_nbr_txt +"|" + acct_nbr_type +"|Life Cycle")
+
+  }
+}
+)
